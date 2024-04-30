@@ -25,7 +25,6 @@ def build_cdm():
     vertica_connection = BaseHook.get_connection("vertica_connection")
     # Получем путь до файла с запросом на создание/обновление витрины
     sql_file_path = Variable.get('sql_cdm_file_path')
-    #sql_file_path = "/lessons/cdm_global_metrics.sql"
 
     autocommit = "True"
     if "autocommit" in vertica_connection.extra_dejson:

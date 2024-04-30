@@ -1,5 +1,5 @@
-INSERT INTO STV2024012236__DWH.global_metrics (date_update, currency_from, amount_total, cnt_transactions, avg_transactions_per_account, cnt_accounts_make_transactions)
-
+MERGE INTO STV2024012236__DWH.global_metrics AS gm
+USING (
 WITH all_transactions AS (
         SELECT operation_id,
                currency_code as currency_from,
@@ -39,4 +39,32 @@ SELECT transaction_dt AS date_update,
        round(sum(amount)/count(distinct account_number_from),2) as avg_transactions_per_account,
        count(distinct account_number_from) as cnt_accounts_make_transactions
 FROM all_transactions
-GROUP BY  date_update, currency_from
+GROUP BY  date_update, currency_from ) AS cdm_data
+
+ON cdm_data.date_update=gm.date_update AND cdm_data.currency_from=gm.currency_from
+
+WHEN MATCHED THEN UPDATE SET
+                currency_from = cdm_data.currency_from,
+                amount_total = cdm_data.amount_total, 
+                cnt_transactions = cdm_data.cnt_transactions,  
+                avg_transactions_per_account = cdm_data.avg_transactions_per_account,
+                cnt_accounts_make_transactions = cdm_data.cnt_accounts_make_transactions
+
+WHEN NOT MATCHED
+    THEN INSERT (
+                date_update,
+                currency_from,
+                amount_total, 
+                cnt_transactions,  
+                avg_transactions_per_account,
+    			cnt_accounts_make_transactions
+        )
+    VALUES (
+                cdm_data.date_update,
+                cdm_data.currency_from,
+                cdm_data.amount_total, 
+                cdm_data.cnt_transactions,  
+                cdm_data.avg_transactions_per_account,
+    cdm_data.cnt_accounts_make_transactions
+        );
+        
